@@ -1,10 +1,10 @@
-import mobase
 import re
 from typing import List
 
+import mobase
+
 # import html2text
 from .html2text import html2text
-
 
 try:
     from PyQt6.QtWidgets import QMessageBox
@@ -16,6 +16,7 @@ class LazyListExport(mobase.IPluginTool):
     _organizer: mobase.IOrganizer
     _modList: mobase.IModList
     _pluginList: mobase.IPluginList
+    _archiveList: list[str]
 
     _isMo2Updated: bool
 
@@ -26,6 +27,7 @@ class LazyListExport(mobase.IPluginTool):
         self._organizer = organizer
         self._modList = organizer.modList()
         self._pluginList = organizer.pluginList()
+        self._archiveList = []
 
         version = self._organizer.appVersion().canonicalString()
         versionx = re.sub("[^0-9.]", "", version)
@@ -90,6 +92,13 @@ class LazyListExport(mobase.IPluginTool):
         else:
             return s
 
+    def populateArchives(self, path: str, fileTreeEntry: mobase.FileTreeEntry) -> mobase.IFileTree.WalkReturn:
+        if fileTreeEntry.isDir():
+            return mobase.IFileTree.WalkReturn.SKIP
+        elif fileTreeEntry.suffix().lower() in ["ba2", "bsa"]:
+            self._archiveList.append(fileTreeEntry.path())
+        return mobase.IFileTree.WalkReturn.CONTINUE
+
     def debugMsg(self, s):
         msgBox = QMessageBox()
         msgBox.setText(s)
@@ -112,7 +121,19 @@ class LazyListExport(mobase.IPluginTool):
         # Clear File if Exists
         with open(outputLocation, "w") as f:
             f.write(
-                "Mod Name, Mod URL, Nexus URL, Comment, Categories, Notes, Plugins --> \n"
+                ", ".join(
+                    [
+                        "Mod Name",
+                        "Enabled",
+                        "Mod URL",
+                        # "Comment",
+                        "Categories",
+                        # "Notes",
+                        "Plugins",
+                        "Archives",
+                    ]
+                )
+                + "\n"
             )
 
         # Loop through all mods and get each ones detail and append to CSV file
@@ -120,62 +141,70 @@ class LazyListExport(mobase.IPluginTool):
             # Get Mod Info
             outputString = ""
             modObj = self._modList.getMod(mod)
+            self._archiveList = []
+            modObj.fileTree().walk(self.populateArchives)
 
             modName = modObj.name()
+            modNameQuoted = self.quote(modName)
+            modEnabled = str(bool(self._modList.state(modName) & mobase.ModState.ACTIVE))
             modUrl = modObj.url()
+            modGame = modObj.gameName().lower()
             modNexusId = str(modObj.nexusId())
             modComment = self.quote(modObj.comments())
             modCats = self.quote("\n".join(modObj.categories()))
             modNotes = self.cleanStr(modObj.notes())
 
             # Get Plugin Info for Mod
-            pluginString = ""
-            for plugin in allPlugins:
-                if self._pluginList.origin(plugin) == modName:
-                    pluginString = (
-                        pluginString
-                        + str(self._pluginList.priority(plugin))
-                        + " - "
-                        + plugin
-                        + ","
-                    )
+            pluginString = self.quote(
+                ",".join(
+                    [
+                        f"<{self._pluginList.priority(plugin)}>{plugin}"
+                        for plugin in allPlugins
+                        if self._pluginList.origin(plugin) == modName
+                    ]
+                )
+            )
+
+            # Get Archive Info for Mod
+            archiveString = self.quote(", ".join([f"{archive}" for archive in sorted(self._archiveList)]))
 
             # Build Text Line
             if modObj.isSeparator():
-                outputString = "\n-------------------" + modName + "-------------------"
+                modName = modName[0 : modName.rfind("_separator")]  # remove trailing "_separator"
+                modNameQuoted = self.quote(f"{modName} (Separator)")
+                modEnabled = ""
+
+            if modObj.isForeign():
+                modEnabled = ""
+                archiveString = ""
+
+            urlString = ""
+            if modObj.nexusId() <= 0 or modUrl != "":
+                urlString = modUrl
             else:
-                urlString = ""
-                if modObj.nexusId() <= 0:
-                    urlString = ""
-                else:
-                    urlString = (
-                        "https://www.nexusmods.com/skyrimspecialedition/mods/"
-                        + modNexusId
-                    )
-                outputString = (
-                    modName
-                    + ","
-                    + modUrl
-                    + ","
-                    + urlString
-                    + ","
-                    + modComment
-                    + ","
-                    + modCats
-                    + ","
-                    + modNotes
-                    + ","
-                    + pluginString
-                )
+                urlString = f"https://www.nexusmods.com/{modGame}/mods/{modNexusId}"
+
+            outputString = ",".join(
+                [
+                    modNameQuoted,
+                    modEnabled,
+                    urlString,
+                    # modComment,
+                    modCats,
+                    # modNotes,
+                    pluginString,
+                    archiveString,
+                ]
+            )
 
             with open(outputLocation, "a", encoding="utf-8-sig") as f:
                 f.write(outputString + "\n")
 
+            # clear archive list for next mod
+            self._archiveList.clear()
+
         msgBox = QMessageBox()
-        msgBox.setText(
-            "Lazy Modlist Exporter is complete!\nYou can find your modlist export at:\n\n"
-            + outputLocation
-        )
+        msgBox.setText("Lazy Modlist Exporter is complete!\nYou can find your modlist export at:\n\n" + outputLocation)
         msgBox.exec()
 
 
