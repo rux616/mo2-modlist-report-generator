@@ -1,5 +1,5 @@
-MO2 Modlist Exporter
-====================
+MO2 Modlist Report Generator
+============================
 by rux616
 Version: 1.0.0
 

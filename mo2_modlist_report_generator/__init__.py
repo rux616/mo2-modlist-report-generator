@@ -12,7 +12,7 @@ except ImportError:
     from PyQt5.QtWidgets import QMessageBox
 
 
-class MO2ModlistExporter(mobase.IPluginTool):
+class MO2ModlistReportGenerator(mobase.IPluginTool):
     _organizer: mobase.IOrganizer
     _modList: mobase.IModList
     _pluginList: mobase.IPluginList
@@ -37,13 +37,13 @@ class MO2ModlistExporter(mobase.IPluginTool):
 
     # Basic info
     def name(self) -> str:
-        return "MO2 Modlist Exporter"
+        return "MO2 Modlist Report Generator"
 
     def author(self) -> str:
         return "Lazyelm & rux616"
 
     def description(self) -> str:
-        return "Exports Modlist as CSV with Name and URL"
+        return "Generates a modlist report with useful info like links to source and plugins with priority"
 
     def version(self) -> mobase.VersionInfo:
         return mobase.VersionInfo(0, 0, 2, mobase.ReleaseType.PRE_ALPHA)
@@ -55,15 +55,15 @@ class MO2ModlistExporter(mobase.IPluginTool):
     def settings(self) -> List[mobase.PluginSetting]:
         return [
             mobase.PluginSetting("enabled", "enable this plugin", True)
-            # Add Settings Later for file location etc...(this isnt working as expected yet for me)
+            # Add Settings Later for file location etc...(this isn't working as expected yet for me)
             # mobase.PluginSetting("enabled", "enable this plugin", True),
             # mobase.PluginSetting("saveDestination", "Where to save file", "./profiles"),
-            # mobase.PluginSetting("saveFileName", "What shall we call the file?", "LazyModlistExporter.csv"),
+            # mobase.PluginSetting("saveFileName", "What shall we call the file?", "MO2ModlistReport.csv"),
         ]
 
     # Display
     def displayName(self) -> str:
-        return "MO2 Modlist Exporter"
+        return "MO2 Modlist Report Generator"
 
     def tooltip(self) -> str:
         return "Exports modlist to a CSV with useful info like links to source and plugins with priority"
@@ -108,7 +108,7 @@ class MO2ModlistExporter(mobase.IPluginTool):
     # Plugin Logic
     def display(self) -> bool:
         # Define File Location
-        outputName = "MO2ModlistExporter.csv"
+        outputName = "MO2ModlistReport.csv"
         outputPath = self._organizer.profilePath()
         outputLocation = outputPath + "/" + outputName
 
@@ -204,10 +204,10 @@ class MO2ModlistExporter(mobase.IPluginTool):
             self._archiveList.clear()
 
         msgBox = QMessageBox()
-        msgBox.setText("Lazy Modlist Exporter is complete!\nYou can find your modlist export at:\n\n" + outputLocation)
+        msgBox.setText("Modlist report has been generated!\nYou can find the report at:\n\n" + outputLocation)
         msgBox.exec()
 
 
 # Tell Mod Organizer to initialize the plugin
 def createPlugin() -> mobase.IPlugin:
-    return MO2ModlistExporter()
+    return MO2ModlistReportGenerator()

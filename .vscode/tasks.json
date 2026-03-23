@@ -5,7 +5,7 @@
       "label": "reload plugin",
       "type": "shell",
       "command": "D:\\Modding\\Fallout 76\\Mod Organizer 2\\ModOrganizer.exe",
-      "args": ["reload-plugin", "MO2 Modlist Exporter"]
+      "args": ["reload-plugin", "MO2 Modlist Report Generator"]
     }
   ]
 }
