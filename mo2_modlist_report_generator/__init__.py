@@ -37,7 +37,7 @@ class MO2ModlistReportGenerator(mobase.IPluginTool):
 
     # Basic info
     def name(self) -> str:
-        return "MO2 Modlist Report Generator"
+        return "Report Generator"
 
     def author(self) -> str:
         return "Lazyelm & rux616"
@@ -63,7 +63,7 @@ class MO2ModlistReportGenerator(mobase.IPluginTool):
 
     # Display
     def displayName(self) -> str:
-        return "MO2 Modlist Report Generator"
+        return "Report Generator"
 
     def tooltip(self) -> str:
         return "Exports modlist to a CSV with useful info like links to source and plugins with priority"
