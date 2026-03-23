@@ -12,7 +12,7 @@ except ImportError:
     from PyQt5.QtWidgets import QMessageBox
 
 
-class LazyListExport(mobase.IPluginTool):
+class MO2ModlistExporter(mobase.IPluginTool):
     _organizer: mobase.IOrganizer
     _modList: mobase.IModList
     _pluginList: mobase.IPluginList
@@ -37,10 +37,10 @@ class LazyListExport(mobase.IPluginTool):
 
     # Basic info
     def name(self) -> str:
-        return "Lazy Modlist Export"
+        return "MO2 Modlist Exporter"
 
     def author(self) -> str:
-        return "Lazyelm"
+        return "Lazyelm & rux616"
 
     def description(self) -> str:
         return "Exports Modlist as CSV with Name and URL"
@@ -63,7 +63,7 @@ class LazyListExport(mobase.IPluginTool):
 
     # Display
     def displayName(self) -> str:
-        return "Lazy Modlist Export"
+        return "MO2 Modlist Exporter"
 
     def tooltip(self) -> str:
         return "Exports modlist to a CSV with useful info like links to source and plugins with priority"
@@ -108,7 +108,7 @@ class LazyListExport(mobase.IPluginTool):
     # Plugin Logic
     def display(self) -> bool:
         # Define File Location
-        outputName = "LazyListExporter.csv"
+        outputName = "MO2ModlistExporter.csv"
         outputPath = self._organizer.profilePath()
         outputLocation = outputPath + "/" + outputName
 
@@ -210,4 +210,4 @@ class LazyListExport(mobase.IPluginTool):
 
 # Tell Mod Organizer to initialize the plugin
 def createPlugin() -> mobase.IPlugin:
-    return LazyListExport()
+    return MO2ModlistExporter()
